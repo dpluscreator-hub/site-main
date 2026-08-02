@@ -15,7 +15,7 @@ export default function FaqSection() {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 sr-only">
           {HOMEPAGE_FAQS.map((faq) => (
             <motion.div
               key={faq.question}
