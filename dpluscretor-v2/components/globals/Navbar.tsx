@@ -21,6 +21,7 @@ import { RiTwitterXFill, RiFiverrFill } from "react-icons/ri";
 import { AiFillYoutube } from "react-icons/ai";
 import { MdOutlineAlternateEmail } from "react-icons/md";
 import { IconType } from "react-icons/lib";
+import { FaHandPointer } from "react-icons/fa";
 import {
     Tooltip,
     TooltipContent,
@@ -32,9 +33,16 @@ interface SocialLink {
     url: string,
     icon: IconType,
     description: string,
+    // brand color used to tint the cursor circle on hover
+    color: string,
 }
 
-const MENU_LINKS = [
+interface MenuLink {
+    label: string,
+    href: string
+}
+
+const MENU_LINKS: MenuLink[] = [
     { label: "Home", href: "/" },
     { label: "About", href: "/about" },
     { label: "Services", href: "/services" },
@@ -61,54 +69,63 @@ const socialLinks: SocialLink[] = [
         url: "https://www.instagram.com/d_pluscreator",
         icon: FaInstagram,
         description: "Behind the scenes, projects & creative inspiration.",
+        color: "#E1306C",
     },
     {
         name: "LinkedIn",
         url: "https://www.linkedin.com/in/dpluscreator/",
         icon: FaLinkedin,
         description: "Company updates, insights & professional networking.",
+        color: "#0A66C2",
     },
     {
         name: "YouTube",
         url: "https://www.youtube.com/@DplusCreator",
         icon: AiFillYoutube,
         description: "Case studies, tutorials & creative showcases.",
+        color: "#FF0000",
     },
     {
         name: "Pinterest",
         url: "https://in.pinterest.com/dpluscreator",
         icon: FaPinterestSquare,
         description: "Curated design inspiration & visual collections.",
+        color: "#E60023",
     },
     {
         name: "X",
         url: "https://x.com/DPlus_Creator",
         icon: RiTwitterXFill,
         description: "Latest updates, ideas & industry conversations.",
+        color: "#111111",
     },
     {
         name: "Facebook",
         url: "https://www.facebook.com/share/18nf1k1don/",
         icon: FaFacebookSquare,
         description: "Follow our community and latest announcements.",
+        color: "#1877F2",
     },
     {
         name: "Fiverr",
         url: "https://www.fiverr.com/s/qD26grV",
         icon: RiFiverrFill,
         description: "Hire us for premium creative & development services.",
+        color: "#1DBF73",
     },
     {
         name: "WhatsApp",
         url: "https://wa.me/917693063186",
         icon: FaWhatsapp,
         description: "Chat with our team for a quick consultation.",
+        color: "#25D366",
     },
     {
         name: "Email",
         url: "mailto:dpluscreator@gmail.com",
         icon: MdOutlineAlternateEmail,
         description: "Reach us for business enquiries and collaborations.",
+        color: "#777777",
     },
 ];
 
@@ -142,12 +159,8 @@ export const Navbar = () => {
     const leftLinks = MENU_LINKS.slice(0, mid);
     const rightLinks = MENU_LINKS.slice(mid);
 
-    // Close the overlay whenever a nav link is clicked (was missing before —
-    // menu used to stay open after navigating).
     const closeMenu = () => setIsMenuOpen(false);
 
-    // Escape key closes the overlay — standard a11y expectation for any
-    // full-screen menu/dialog pattern.
     useEffect(() => {
         if (!isMenuOpen) return;
         const onKeyDown = (e: KeyboardEvent) => {
@@ -210,28 +223,19 @@ export const Navbar = () => {
                 >
                     {/* TOP: art card + nav links */}
                     <div className="flex flex-col lg:flex-row lg:flex-2/3">
-                        <div className="w-full lg:flex-4/7 p-4 sm:p-6 md:p-8 lg:p-10 lg:pb-0">
-                            {/* ART ASSETS - single wide combined section */}
+                        <div className="w-full lg:flex-4/7  ">
                             <DPlusVisitingCard />
                         </div>
                         <div className="w-full lg:flex-3/7 flex items-start sm:items-center gap-8 sm:gap-10 md:gap-12 lg:gap-16 p-6 sm:p-8 md:p-10 lg:p-12 lg:pr-10">
                             <div className="flex flex-col gap-4 sm:gap-5 md:gap-6 lg:gap-8">
                                 {leftLinks.map((item) => (
-                                    <Link key={item.href} href={item.href} onClick={closeMenu}>
-                                        <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-heading">
-                                            {item.label}
-                                        </span>
-                                    </Link>
+                                    <MenuLink item={item} closeMenu={closeMenu} key={item.label} />
                                 ))}
                             </div>
 
                             <div className="flex flex-col gap-4 sm:gap-5 md:gap-6 lg:gap-8">
                                 {rightLinks.map((item) => (
-                                    <Link key={item.href} href={item.href} onClick={closeMenu}>
-                                        <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-heading">
-                                            {item.label}
-                                        </span>
-                                    </Link>
+                                    <MenuLink item={item} closeMenu={closeMenu} key={item.label} />
                                 ))}
                             </div>
 
@@ -242,12 +246,10 @@ export const Navbar = () => {
                     <div className="flex flex-col lg:flex-1/3">
                         <div className="flex flex-col md:flex-row lg:flex-3/5">
                             <div className="w-full md:flex-2/5 pr-6 sm:pr-8 lg:pr-12 py-4">
-                                {/* TEXT */}
                                 <p className="text-lg ml-3 sm:text-xl md:text-2xl lg:text-3xl font-semibold font-subtext">DPlus Creators is a premium creative technology studio building high-converting websites, AI automations, and brand content.</p>
                             </div>
                             <div className="w-full md:flex-3/5 flex flex-col gap-6 md:gap-0 ">
-                                <div className="flex justify-start md:flex-1/3 md:justify-end">
-                                    {/* Logo stencil */}
+                                <div className="flex justify-start pl-4 md:flex-1/3 md:justify-end">
                                     <RevealImage
                                         src={stencilSrc}
                                         alt="D Plus Creator Logo"
@@ -259,23 +261,9 @@ export const Navbar = () => {
                                     />
 
                                 </div>
-                                <div className="flex flex-col sm:flex-row gap-6 sm:gap-10 pl-22  md:gap-18 md:flex-2/3 justify-between items-center">
-                                    <Magnetic >
-                                        <CircularText
-                                            direction="clockwise"
-                                            fontSize={10}
-                                            fontWeight={500}
-                                            hoverSpeedMultiplier={3.5}
-                                            respectReducedMotion
-                                            size={100}
-                                            // color="var(--primary)"
-                                            uppercase={false}
-                                            className="font-mono"
-                                        >
-                                            DPlus Creator
-                                        </CircularText>
-                                    </Magnetic>
-                                    <div className="w-full max-w-160">
+                                <div className="flex w-full flex-col sm:flex-row gap-6 sm:gap-10 pl-0 sm:pl-10 lg:pl-22 md:gap-18 md:flex-2/3 justify-between items-center">
+                                    <MagneticCircle logosrc={logoSrc} />
+                                    <div className="w-full flex-1 min-w-0 lg:max-w-160">
                                         <Marquee>
                                             <MarqueeContent>
                                                 {Services.map((service) => (
@@ -295,13 +283,12 @@ export const Navbar = () => {
                         <div className="flex flex-col sm:flex-row lg:flex-2/5 pl-4 gap-4 sm:gap-0 py-4 lg:py-0">
                             <div className="w-full sm:flex-2/5 flex flex-col-reverse gap-4 sm:gap-0">
                                 <div className="flex flex-col items-start justify-center pt-6 pb-3">
-                                    <Link className="text-xs font-light font-subtext" href={"/privacy"} onClick={closeMenu}> Privacy Policy.</Link>
-                                    <Link className="text-xs font-light font-subtext" href={"/terms"} onClick={closeMenu}> Terms & Conditions.</Link>
+                                    <FooterLink href={"/privacy"} closeMenu={closeMenu}>Privacy Policy.</FooterLink>
+                                    <FooterLink href={"/terms"} closeMenu={closeMenu}>Terms & Conditions.</FooterLink>
                                     <span className="text-xs font-light font-subtext">All Rights Reserved to www.dpluscreator.com</span>
                                 </div>
-                                {/* MARQUEE WITH FEW LOGOS */}
                                 <Marquee>
-                                    <MarqueeContent direction="right">
+                                    <MarqueeContent direction="right" gradient gradientWidth={80} gradientColor={"var(--accent)"}>
                                         {logos.map((logo, i) => (
                                             <MarqueeItem key={i}>
                                                 <ImagePro
@@ -318,50 +305,14 @@ export const Navbar = () => {
                                     </MarqueeContent>
                                 </Marquee>
                             </div>
-                            <div className=" w-full sm:flex-3/5 flex justify-end gap-4.5 items-center min-h-12 ">
-                                {/* SOCIAL LINKS */}
-                                {
-                                    socialLinks.map((socialLink: SocialLink) => {
-                                        const Icon = socialLink.icon;
-                                        const isMail = socialLink.url.startsWith("mailto:");
-
-                                        return (
-                                            <a
-                                                key={socialLink.name}
-                                                href={socialLink.url}
-                                                target={isMail ? undefined : "_blank"}
-                                                rel={isMail ? undefined : "noopener noreferrer"}
-                                                aria-label={socialLink.name}
-                                            >
-                                                <Tooltip>
-                                                    <TooltipTrigger >
-                                                        <div
-                                                            className={cn(
-                                                                "flex items-center justify-center py-3 pl-3",
-                                                                socialLink.name !== socialLinks[socialLinks.length - 1].name && "pr-3"
-                                                            )}
-                                                        >
-                                                            <Icon className="size-8" />
-                                                        </div>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="top" className="max-w-64 rounded-sm py-2">
-                                                        <div className="space-y-1">
-                                                            <div className="flex items-center gap-1.5">
-                                                                <Icon className="size-3.5 text-primary" />
-                                                                <span className="text-base font-semibold text-primary font-subtext ">
-                                                                    {socialLink.name}
-                                                                </span>
-                                                            </div>
-                                                            <p className="text-xs text-muted font-subtext leading-tight">
-                                                                {socialLink.description}
-                                                            </p>
-                                                        </div>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </a>
-                                        )
-                                    })
-                                }
+                            <div className=" w-full sm:flex-3/5 flex lg:justify-end justify-start gap-4.5 items-center min-h-12 flex-wrap ">
+                                {socialLinks.map((socialLink: SocialLink) => (
+                                    <SocialLinkItem
+                                        key={socialLink.name}
+                                        socialLink={socialLink}
+                                        isLast={socialLink.name === socialLinks[socialLinks.length - 1].name}
+                                    />
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -417,5 +368,181 @@ const MenuToggleButton = ({
 
             }
         </Button>
+    );
+};
+
+
+const MenuLink = ({
+    item,
+    closeMenu,
+}: {
+    item: MenuLink;
+    closeMenu: () => void;
+}) => {
+    // Cursor becomes an "open" arrow while hovering a nav link — reinforces
+    // that clicking will actually navigate somewhere.
+    const cursor = useCursorElement({
+        state: "icon",
+        icon: <FaHandPointer className="size-9 text-foreground" />,
+        backgroundColor: "transparent"
+    });
+
+    return (
+        <Link
+            href={item.href}
+            onClick={closeMenu}
+            {...cursor}
+            className="group relative inline-block overflow-hidden"
+        >
+            {/* Revealed text */}
+            <span className="relative z-0 text-primary text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-heading">
+                {item.label}
+            </span>
+
+            {/* Black curtain */}
+            <span
+                className="
+                  absolute inset-0
+                  overflow-hidden
+                  w-full
+                  transition-[width]
+                  duration-700
+                  ease-[cubic-bezier(.83,0,.17,1)]
+                  group-hover:w-0
+              "
+            >
+                <span className="block whitespace-nowrap text-foreground text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-heading">
+                    {item.label}
+                </span>
+            </span>
+        </Link>
+    );
+};
+
+// Small footer links (Privacy/Terms) — a subtle text cursor is enough here,
+// no need for the big icon treatment used on the main menu links.
+const FooterLink = ({
+    href,
+    closeMenu,
+    children,
+}: {
+    href: string;
+    closeMenu: () => void;
+    children: React.ReactNode;
+}) => {
+    const cursor = useCursorElement({
+        state: "text",
+        text: "View",
+        circleSize: 20,
+        textColor: "var(--foreground)",
+        circleOpacity: 0.6
+    });
+    return (
+        <Link
+            className="text-xs font-light font-subtext"
+            href={href}
+            onClick={closeMenu}
+            {...cursor}
+        >
+            {children}
+        </Link>
+    );
+};
+
+// Each social icon gets its own cursor: the platform's own icon rendered
+// inside the cursor circle, tinted with that brand's color. Pulled out of
+// the .map() into its own component since hooks can't be called in a loop.
+const SocialLinkItem = ({
+    socialLink,
+    isLast,
+}: {
+    socialLink: SocialLink;
+    isLast: boolean;
+}) => {
+    const Icon = socialLink.icon;
+    const isMail = socialLink.url.startsWith("mailto:");
+
+    const cursor = useCursorElement({
+        state: "icon",
+        icon: <Icon className="size-10" style={{
+            color: socialLink.color
+        }} />,
+        circleOpacity: 0.9,
+        backgroundColor: "var(--accent)",
+        circleSize: 40,
+    });
+
+    return (
+        <a
+            href={socialLink.url}
+            target={isMail ? undefined : "_blank"}
+            rel={isMail ? undefined : "noopener noreferrer"}
+            aria-label={socialLink.name}
+            {...cursor}
+        >
+            <Tooltip>
+                <TooltipTrigger>
+                    <div
+                        className={cn(
+                            "flex items-center justify-center py-3 pl-3",
+                            !isLast && "pr-3"
+                        )}
+                    >
+                        <Icon className="size-8" />
+                    </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-64 rounded-sm py-2">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-1.5">
+                            <Icon className="size-3.5 text-primary" />
+                            <span className="text-base font-semibold text-primary font-subtext ">
+                                {socialLink.name}
+                            </span>
+                        </div>
+                        <p className="text-xs text-muted font-subtext leading-tight">
+                            {socialLink.description}
+                        </p>
+                    </div>
+                </TooltipContent>
+            </Tooltip>
+        </a>
+    );
+};
+
+const MagneticCircle = ({ logosrc }: { logosrc: string }) => {
+    const cursor = useCursorElement({
+        state: "icon",
+        icon: (
+            <ImagePro
+                src={logosrc}
+                alt="D Plus Creator Logo"
+                width={101.04}
+                height={44.58}
+                containerClassName="w-8 h-3.5 object-contain"
+                fetchPriority="high"
+                loading="eager"
+            />
+        ),
+        circleSize: 80,
+        circleOpacity: 0,
+    });
+
+    return (
+        <div {...cursor} className="inline-block">
+            <Magnetic>
+                <CircularText
+                    direction="clockwise"
+                    fontSize={10}
+                    fontWeight={500}
+                    hoverSpeedMultiplier={3.5}
+                    respectReducedMotion
+                    size={100}
+                    uppercase={false}
+                    className="font-mono"
+                >
+                    DPlus Creator
+                </CircularText>
+            </Magnetic>
+        </div>
     );
 };

@@ -24,7 +24,7 @@ export function DPlusVisitingCard() {
   }
 
   return (
-    <div className="flex items-center justify-center py-20">
+    <div className="flex items-center justify-center py-10 sm:py-14 lg:py-20 px-4">
       <div
         className="card-scene"
         onMouseEnter={handleMouseEnter}
@@ -51,8 +51,15 @@ export function DPlusVisitingCard() {
 
       <style jsx>{`
         .card-scene {
-          width: 580px;
-          height: 342.4px;
+          /* Fixed 580x342.4px pehle sirf width shrink hone deta tha (screen
+             chhoti hone par) lekin height wahi 342.4px reh jaati thi — isliye
+             card "square" ban jaata tha aur front/back image crop ho jaati thi.
+             Ab width fluid hai (100% up to 580px max) aur height CSS
+             aspect-ratio se auto-derive hoti hai, so ratio hamesha 580:342.4
+             (≈1.694) fixed rehta hai chahe screen kitni bhi chhoti ho. */
+          width: 100%;
+          max-width: 580px;
+          aspect-ratio: 580 / 342.4;
           perspective: 1200px;
           cursor: pointer;
         }
@@ -64,10 +71,6 @@ export function DPlusVisitingCard() {
           transform-style: preserve-3d;
           transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
         }
-
-        // .card-wobbling {
-        //   animation: wobble 3.2s ease-in-out infinite;
-        // }
 
         .card-still {
           animation: none;
