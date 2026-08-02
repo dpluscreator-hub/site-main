@@ -15,11 +15,12 @@ import {
   ThemeProvider,
   CursorProvider,
   TooltipProvider,
+  PreloaderProvider,
 } from "@/components/globals/providers";
+import { PreloaderInitScript } from "./preloader-script";
 import { Toaster } from "@/components/ui/toast";
 import { Footer } from "@/components/globals/Footer"
 import { Navbar } from "@/components/globals/Navbar"
-
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -35,22 +36,26 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, oxaniumHeading.variable, "font-sans", raleway.variable, publicSansHeading.variable)}
+      suppressHydrationWarning
     >
       <body
         suppressHydrationWarning
         suppressContentEditableWarning
         className="min-h-full flex flex-col"
       >
+        <PreloaderInitScript/>
         <SmoothScrollProvider>
           <ThemeProvider attribute="class" enableSystem={false}>
             <CursorProvider>
               <TooltipProvider>
-                <div className="bg-background text-foreground">
-                <Navbar />
-                {children}
-                <Footer />
-                </div>
-                <Toaster />
+                <PreloaderProvider>
+                  <div className="bg-background text-foreground">
+                    <Navbar />
+                    {children}
+                    <Footer />
+                  </div>
+                  <Toaster />
+                </PreloaderProvider>
               </TooltipProvider>
             </CursorProvider>
           </ThemeProvider>

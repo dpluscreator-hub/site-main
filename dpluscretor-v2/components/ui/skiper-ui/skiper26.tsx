@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { GripHorizontal } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { ThemeToggler } from "@/components/togglers/ThemeToggler";
@@ -484,12 +484,7 @@ export const useThemeToggle = ({
 } = {}) => {
   const { theme, setTheme, resolvedTheme } = useTheme();
 
-  const [isDark, setIsDark] = useState(false);
-
-  // Sync isDark state with resolved theme after hydration
-  useEffect(() => {
-    setIsDark(resolvedTheme === "dark");
-  }, [resolvedTheme]);
+  const isDark = resolvedTheme === "dark";
 
   const styleId = "theme-transition-styles";
 
@@ -498,9 +493,6 @@ export const useThemeToggle = ({
 
     let styleElement = document.getElementById(styleId) as HTMLStyleElement;
 
-    console.log("style ELement", styleElement);
-    console.log("name", name);
-
     if (!styleElement) {
       styleElement = document.createElement("style");
       styleElement.id = styleId;
@@ -508,13 +500,9 @@ export const useThemeToggle = ({
     }
 
     styleElement.textContent = css;
-
-    console.log("content updated");
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setIsDark(!isDark);
-
     const animation = createAnimation(variant, start, blur, gifUrl);
 
     updateStyles(animation.css, animation.name);
@@ -534,8 +522,6 @@ export const useThemeToggle = ({
   }, [theme, setTheme, variant, start, blur, gifUrl, updateStyles, isDark]);
 
   const setCrazyLightTheme = useCallback(() => {
-    setIsDark(false);
-
     const animation = createAnimation(variant, start, blur, gifUrl);
 
     updateStyles(animation.css, animation.name);
@@ -555,8 +541,6 @@ export const useThemeToggle = ({
   }, [setTheme, variant, start, blur, gifUrl, updateStyles]);
 
   const setCrazyDarkTheme = useCallback(() => {
-    setIsDark(true);
-
     const animation = createAnimation(variant, start, blur, gifUrl);
 
     updateStyles(animation.css, animation.name);
@@ -577,7 +561,6 @@ export const useThemeToggle = ({
 
   return {
     isDark,
-    setIsDark,
     toggleTheme,
     setCrazyLightTheme,
     setCrazyDarkTheme,

@@ -16,7 +16,7 @@ interface MenuOverlayProps {
 
 export function MenuOverlay({
   open,
-  topOffsetClassName = "top-22.5",
+  topOffsetClassName = "top-16 sm:top-18 md:top-20 lg:top-22.5",
   children,
   className,
 }: MenuOverlayProps) {
@@ -101,7 +101,7 @@ export function MenuOverlay({
       )}
       style={{ clipPath: "inset(0 0 100% 0)" }}
     >
-      <div ref={contentRef} className="h-full w-full px-48">
+       <div ref={contentRef} className="h-full w-full px-4 sm:px-6 md:px-10 lg:px-20 xl:px-32 2xl:px-48">
         {children}
       </div>
     </div>
