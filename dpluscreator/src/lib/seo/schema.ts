@@ -58,14 +58,16 @@ export function faqSchema(faqs: { question: string; answer: string }[]): Schema 
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: faqs.map((faq) => ({
-      "@type": "Question",
-      name: faq.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: faq.answer,
-      },
-    })),
+    mainEntity: Array.isArray(faqs)
+      ? faqs.map((faq) => ({
+          "@type": "Question",
+          name: faq.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: faq.answer,
+          },
+        }))
+      : [],
   };
 }
 
