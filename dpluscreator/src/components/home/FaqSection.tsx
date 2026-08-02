@@ -5,7 +5,7 @@ import { HOMEPAGE_FAQS } from "@/lib/data/faqs";
 
 export default function FaqSection() {
   return (
-    <section id="faq" className="bg-[#f8f8f8] py-20">
+    <section id="faq" className="bg-[#f8f8f8] py-20 sr-only">
       <div className="container mx-auto px-6">
         <div className="max-w-3xl text-center mx-auto mb-12">
           <p className="text-sm uppercase tracking-[0.28em] text-dark/60 mb-3">FAQ</p>
@@ -15,7 +15,7 @@ export default function FaqSection() {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 sr-only">
+        <div className="grid gap-6 md:grid-cols-2 ">
           {HOMEPAGE_FAQS.map((faq) => (
             <motion.div
               key={faq.question}
