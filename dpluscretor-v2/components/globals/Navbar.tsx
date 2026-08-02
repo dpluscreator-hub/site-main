@@ -3,7 +3,7 @@ import { useMounted } from "@/hooks/use-mounted";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GoHomeFill } from "react-icons/go";
 
 import { Marquee, MarqueeContent, MarqueeItem } from "../kibo-ui/marquee";
@@ -16,6 +16,23 @@ import CircularText from "./CircularText";
 import { Magnetic } from "./magnetic";
 import { DPlusVisitingCard } from "../cards/DPlusVisitingCard";
 import { ImagePro } from "./ImagePro";
+import { FaPinterestSquare, FaLinkedin, FaWhatsapp, FaInstagram, FaFacebookSquare } from "react-icons/fa";
+import { RiTwitterXFill, RiFiverrFill } from "react-icons/ri";
+import { AiFillYoutube } from "react-icons/ai";
+import { MdOutlineAlternateEmail } from "react-icons/md";
+import { IconType } from "react-icons/lib";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
+
+interface SocialLink {
+    name: string,
+    url: string,
+    icon: IconType,
+    description: string,
+}
 
 const MENU_LINKS = [
     { label: "Home", href: "/" },
@@ -38,6 +55,62 @@ const Services = [
     "Creative Technology Studio for Growing Brands  ●"
 ]
 
+const socialLinks: SocialLink[] = [
+    {
+        name: "Instagram",
+        url: "https://www.instagram.com/d_pluscreator",
+        icon: FaInstagram,
+        description: "Behind the scenes, projects & creative inspiration.",
+    },
+    {
+        name: "LinkedIn",
+        url: "https://www.linkedin.com/in/dpluscreator/",
+        icon: FaLinkedin,
+        description: "Company updates, insights & professional networking.",
+    },
+    {
+        name: "YouTube",
+        url: "https://www.youtube.com/@DplusCreator",
+        icon: AiFillYoutube,
+        description: "Case studies, tutorials & creative showcases.",
+    },
+    {
+        name: "Pinterest",
+        url: "https://in.pinterest.com/dpluscreator",
+        icon: FaPinterestSquare,
+        description: "Curated design inspiration & visual collections.",
+    },
+    {
+        name: "X",
+        url: "https://x.com/DPlus_Creator",
+        icon: RiTwitterXFill,
+        description: "Latest updates, ideas & industry conversations.",
+    },
+    {
+        name: "Facebook",
+        url: "https://www.facebook.com/share/18nf1k1don/",
+        icon: FaFacebookSquare,
+        description: "Follow our community and latest announcements.",
+    },
+    {
+        name: "Fiverr",
+        url: "https://www.fiverr.com/s/qD26grV",
+        icon: RiFiverrFill,
+        description: "Hire us for premium creative & development services.",
+    },
+    {
+        name: "WhatsApp",
+        url: "https://wa.me/917693063186",
+        icon: FaWhatsapp,
+        description: "Chat with our team for a quick consultation.",
+    },
+    {
+        name: "Email",
+        url: "mailto:dpluscreator@gmail.com",
+        icon: MdOutlineAlternateEmail,
+        description: "Reach us for business enquiries and collaborations.",
+    },
+];
 
 export const Navbar = () => {
     const { theme } = useTheme();
@@ -69,6 +142,20 @@ export const Navbar = () => {
     const leftLinks = MENU_LINKS.slice(0, mid);
     const rightLinks = MENU_LINKS.slice(mid);
 
+    // Close the overlay whenever a nav link is clicked (was missing before —
+    // menu used to stay open after navigating).
+    const closeMenu = () => setIsMenuOpen(false);
+
+    // Escape key closes the overlay — standard a11y expectation for any
+    // full-screen menu/dialog pattern.
+    useEffect(() => {
+        if (!isMenuOpen) return;
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setIsMenuOpen(false);
+        };
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [isMenuOpen]);
 
     const logos = [
         { src: logoSrc, alt: "Themed Logo" },
@@ -90,7 +177,7 @@ export const Navbar = () => {
         <>
             <nav className="relative z-50 px-4 sm:px-6 md:px-10 lg:px-20 xl:px-32 2xl:px-48 py-2 h-16 sm:h-18 md:h-20 lg:h-22.5 bg-background">
                 <div className="flex items-center justify-between h-full">
-                    <Link {...cursor} href={"/"}>
+                    <Link {...cursor} href={"/"} onClick={closeMenu}>
                         <RevealImage
                             src={logoSrc}
                             alt="D Plus Creator Logo"
@@ -130,7 +217,7 @@ export const Navbar = () => {
                         <div className="w-full lg:flex-3/7 flex items-start sm:items-center gap-8 sm:gap-10 md:gap-12 lg:gap-16 p-6 sm:p-8 md:p-10 lg:p-12 lg:pr-10">
                             <div className="flex flex-col gap-4 sm:gap-5 md:gap-6 lg:gap-8">
                                 {leftLinks.map((item) => (
-                                    <Link key={item.href} href={item.href}>
+                                    <Link key={item.href} href={item.href} onClick={closeMenu}>
                                         <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-heading">
                                             {item.label}
                                         </span>
@@ -140,7 +227,7 @@ export const Navbar = () => {
 
                             <div className="flex flex-col gap-4 sm:gap-5 md:gap-6 lg:gap-8">
                                 {rightLinks.map((item) => (
-                                    <Link key={item.href} href={item.href}>
+                                    <Link key={item.href} href={item.href} onClick={closeMenu}>
                                         <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-heading">
                                             {item.label}
                                         </span>
@@ -154,11 +241,11 @@ export const Navbar = () => {
                     {/* BOTTOM: blurb + stencil/circular/marquee + footer */}
                     <div className="flex flex-col lg:flex-1/3">
                         <div className="flex flex-col md:flex-row lg:flex-3/5">
-                            <div className="w-full md:flex-2/5 px-6 sm:px-8 lg:px-12 py-4">
+                            <div className="w-full md:flex-2/5 pr-6 sm:pr-8 lg:pr-12 py-4">
                                 {/* TEXT */}
-                                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold font-subtext">DPlus Creators is a premium creative technology studio building high-converting websites, AI automations, and brand content.</p>
+                                <p className="text-lg ml-3 sm:text-xl md:text-2xl lg:text-3xl font-semibold font-subtext">DPlus Creators is a premium creative technology studio building high-converting websites, AI automations, and brand content.</p>
                             </div>
-                            <div className="w-full md:flex-3/5 flex flex-col gap-6 md:gap-0 px-6 sm:px-0">
+                            <div className="w-full md:flex-3/5 flex flex-col gap-6 md:gap-0 ">
                                 <div className="flex justify-start md:flex-1/3 md:justify-end">
                                     {/* Logo stencil */}
                                     <RevealImage
@@ -172,8 +259,8 @@ export const Navbar = () => {
                                     />
 
                                 </div>
-                                <div className="flex flex-col sm:flex-row gap-6 sm:gap-10 md:gap-18 md:flex-2/3 justify-between items-center">
-                                    <Magnetic>
+                                <div className="flex flex-col sm:flex-row gap-6 sm:gap-10 pl-22  md:gap-18 md:flex-2/3 justify-between items-center">
+                                    <Magnetic >
                                         <CircularText
                                             direction="clockwise"
                                             fontSize={10}
@@ -205,11 +292,11 @@ export const Navbar = () => {
 
                             </div>
                         </div>
-                        <div className="flex flex-col sm:flex-row lg:flex-2/5 px-4 gap-4 sm:gap-0 py-4 lg:py-0">
+                        <div className="flex flex-col sm:flex-row lg:flex-2/5 pl-4 gap-4 sm:gap-0 py-4 lg:py-0">
                             <div className="w-full sm:flex-2/5 flex flex-col-reverse gap-4 sm:gap-0">
                                 <div className="flex flex-col items-start justify-center pt-6 pb-3">
-                                    <Link className="text-xs font-light font-subtext" href={"/privacy"}> Privacy Policy.</Link>
-                                    <Link className="text-xs font-light font-subtext" href={"/terms"}> Terms & Conditions.</Link>
+                                    <Link className="text-xs font-light font-subtext" href={"/privacy"} onClick={closeMenu}> Privacy Policy.</Link>
+                                    <Link className="text-xs font-light font-subtext" href={"/terms"} onClick={closeMenu}> Terms & Conditions.</Link>
                                     <span className="text-xs font-light font-subtext">All Rights Reserved to www.dpluscreator.com</span>
                                 </div>
                                 {/* MARQUEE WITH FEW LOGOS */}
@@ -231,8 +318,50 @@ export const Navbar = () => {
                                     </MarqueeContent>
                                 </Marquee>
                             </div>
-                            <div className="bg-teal-500 w-full sm:flex-3/5 flex justify-start gap-3.5 items-center min-h-12">
+                            <div className=" w-full sm:flex-3/5 flex justify-end gap-4.5 items-center min-h-12 ">
                                 {/* SOCIAL LINKS */}
+                                {
+                                    socialLinks.map((socialLink: SocialLink) => {
+                                        const Icon = socialLink.icon;
+                                        const isMail = socialLink.url.startsWith("mailto:");
+
+                                        return (
+                                            <a
+                                                key={socialLink.name}
+                                                href={socialLink.url}
+                                                target={isMail ? undefined : "_blank"}
+                                                rel={isMail ? undefined : "noopener noreferrer"}
+                                                aria-label={socialLink.name}
+                                            >
+                                                <Tooltip>
+                                                    <TooltipTrigger >
+                                                        <div
+                                                            className={cn(
+                                                                "flex items-center justify-center py-3 pl-3",
+                                                                socialLink.name !== socialLinks[socialLinks.length - 1].name && "pr-3"
+                                                            )}
+                                                        >
+                                                            <Icon className="size-8" />
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side="top" className="max-w-64 rounded-sm py-2">
+                                                        <div className="space-y-1">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Icon className="size-3.5 text-primary" />
+                                                                <span className="text-base font-semibold text-primary font-subtext ">
+                                                                    {socialLink.name}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-xs text-muted font-subtext leading-tight">
+                                                                {socialLink.description}
+                                                            </p>
+                                                        </div>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </a>
+                                        )
+                                    })
+                                }
                             </div>
                         </div>
                     </div>
@@ -261,6 +390,8 @@ const MenuToggleButton = ({
             size={"icon"}
             {...cursor}
             onClick={onToggle}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isOpen}
             className="group flex flex-col items-end justify-center gap-1.5 w-8 sm:w-10 hover:bg-background dark:hover:bg-background"
         >
             {!isOpen ?
