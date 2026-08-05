@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import PrimaryPreloader from '../PrimaryPreloader';
 import SecondaryPreloader from '../SecondaryPreloader';
 type PreloaderKind = 'primary' | 'secondary';
@@ -20,8 +20,11 @@ function getInitialType(): PreloaderKind {
 
 export function PreloaderProvider({ children }: { children: React.ReactNode }) {
   const [type] = useState<PreloaderKind>(getInitialType);
-  const [show, setShow] = useState(true);
+  const [readyToDismiss, setReadyToDismiss] = useState(false);
+  const [primaryAnimationDone, setPrimaryAnimationDone] = useState(type !== 'primary');
   const startTimeRef = useRef<number | null>(null);
+  const show = !readyToDismiss || !primaryAnimationDone;
+  const handlePrimaryDone = useCallback(() => setPrimaryAnimationDone(true), []);
 
   useEffect(() => {
     startTimeRef.current = Date.now();
@@ -31,7 +34,7 @@ export function PreloaderProvider({ children }: { children: React.ReactNode }) {
     const scheduleFinish = () => {
       const elapsed = Date.now() - (startTimeRef.current ?? Date.now());
       const remaining = Math.max(minDuration - elapsed, 0);
-      timer = setTimeout(() => setShow(false), remaining);
+      timer = setTimeout(() => setReadyToDismiss(true), remaining);
     };
 
     if (document.readyState === 'complete') {
@@ -55,9 +58,9 @@ export function PreloaderProvider({ children }: { children: React.ReactNode }) {
       <div aria-hidden={show}>{children}</div>
 
       {show && (
-        <div role="status" aria-busy="true" aria-label="Loading site" className="fixed inset-0 z-9999">
+        <div role="status" aria-busy="true" aria-label="Loading site" className="fixed inset-0 z-[9999]">
           {type === 'primary' ? (
-            <PrimaryPreloader reduced={prefersReducedMotion} onDone={() => {}} />
+            <PrimaryPreloader reduced={prefersReducedMotion} onDone={handlePrimaryDone} />
           ) : (
             <SecondaryPreloader reduced={prefersReducedMotion} onDone={() => {}} />
           )}

@@ -6,6 +6,9 @@ import { gsap } from 'gsap';
 import LogoOutline from '@/assets/preloader/OutlineLogo';
 import LogoFill from '@/assets/preloader/FillLogo';
 
+const EMPTY_FILL_CLIP_PATH = 'inset(100% 0% 0% 0%)';
+const FULL_FILL_CLIP_PATH = 'inset(0% 0% 0% 0%)';
+
 export default function SecondaryPreloader({
     reduced,
     onDone,
@@ -24,23 +27,18 @@ export default function SecondaryPreloader({
             });
 
             if (reduced) {
-                // Reduced motion: simple opacity fade, no fill animation
-                tl.set(fillRef.current, { clipPath: 'inset(0% 0% 0% 0%)' })
+                tl.set(fillRef.current, { clipPath: FULL_FILL_CLIP_PATH })
                     .to(rootRef.current, { opacity: 0, duration: 0.4, delay: 0.3 });
                 return;
             }
 
-            // Start fully "empty" — clipped from the top (nothing visible)
-            tl.set(fillRef.current, { clipPath: 'inset(100% 0% 0% 0%)' })
-                // Fill bottom → top by animating the top-inset down to 0
+            tl.set(fillRef.current, { clipPath: EMPTY_FILL_CLIP_PATH })
                 .to(fillRef.current, {
-                    clipPath: 'inset(0% 0% 0% 0%)',
+                    clipPath: FULL_FILL_CLIP_PATH,
                     duration: 1.6,
                     ease: 'power2.inOut',
                 })
-                // Small hold so the completed logo is visible for a beat
                 .to({}, { duration: 0.3 })
-                // Fade whole preloader out
                 .to(rootRef.current, {
                     opacity: 0,
                     duration: 0.6,
@@ -54,15 +52,20 @@ export default function SecondaryPreloader({
     return (
         <div
             ref={rootRef}
-            className="h-full w-full bg-black flex items-center justify-center"
+            className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-black"
         >
-            <div ref={containerRef} className="relative w-40 h-40">
-                {/* Base layer — dim outline, no color override needed, color is baked in */}
-                <LogoOutline className="absolute inset-0 w-full h-full opacity-25" />
+            <div
+                ref={containerRef}
+                className="relative aspect-[314/138] w-[clamp(14rem,38vw,22rem)] will-change-transform"
+            >
+                <LogoOutline className="absolute inset-0 h-full w-full opacity-25" />
 
-                {/* Fill layer — solid brand color, clipped bottom-to-top */}
-                <div ref={fillRef} className="absolute inset-0 w-full h-full">
-                    <LogoFill className="w-full h-full" />
+                <div
+                    ref={fillRef}
+                    className="absolute inset-0 h-full w-full will-change-[clip-path]"
+                    style={{ clipPath: EMPTY_FILL_CLIP_PATH }}
+                >
+                    <LogoFill className="h-full w-full" />
                 </div>
             </div>
         </div>

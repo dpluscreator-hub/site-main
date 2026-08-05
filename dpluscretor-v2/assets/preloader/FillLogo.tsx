@@ -1,12 +1,13 @@
 import * as React from "react";
 
-const FillLogo: React.FC<React.SVGProps<SVGElement>> = (props) => (
+const FillLogo: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="314"
     height="138"
     fill="none"
     viewBox="0 0 314 138"
+    {...props}
   >
     <path
       fill="#F5A623"
