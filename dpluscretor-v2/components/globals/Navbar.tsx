@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { GoHomeFill } from "react-icons/go";
+import BlurText from "@/components/ui/BlurText";
 
 import { Marquee, MarqueeContent, MarqueeItem } from "../kibo-ui/marquee";
 import { ThemeToggler } from "../togglers/ThemeToggler";
@@ -246,7 +247,14 @@ export const Navbar = () => {
                     <div className="flex flex-col lg:flex-1/3">
                         <div className="flex flex-col md:flex-row lg:flex-3/5">
                             <div className="w-full md:flex-2/5 pr-6 sm:pr-8 lg:pr-12 py-4">
-                                <p className="text-lg ml-3 sm:text-xl md:text-2xl lg:text-3xl font-semibold font-subtext">DPlus Creators is a premium creative technology studio building high-converting websites, AI automations, and brand content.</p>
+                                <BlurText
+                                        text="DPlus Creators designs digital experiences that combine thoughtful design, intelligent technology, and creative storytelling to help brands grow with confidence."
+                                        animateBy="words"
+                                        delay={0.08}
+                                        duration={0.7}
+                                        direction="bottom"
+                                        className="text-lg ml-3 sm:text-xl md:text-2xl lg:text-3xl font-semibold font-subtext"
+                                />
                             </div>
                             <div className="w-full md:flex-3/5 flex flex-col gap-6 md:gap-0 ">
                                 <div className="flex justify-start pl-4 md:flex-1/3 md:justify-end">
