@@ -128,6 +128,17 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans scrollbar-thin scrollbar-gutter-both scrollbar-thumb-primary;
+    @apply font-sans scrollbar-thin scrollbar-thumb-primary;
   }
+  .reveal-line {
+  overflow: hidden;
+  display: block;
+  perspective: 800px;
+  padding-bottom: 1px;
+  }
+  .char {
+  display: inline-block;
+  will-change: transform;
 }
+}
+

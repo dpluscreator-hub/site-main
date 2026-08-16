@@ -14,6 +14,7 @@ import {
   type JSX,
   type MouseEvent as ReactMouseEvent,
 } from "react";
+import { createPortal } from "react-dom";
 import { useIsTouchDevice } from "@/hooks/use-is-touch-device";
 
 export type CursorState =
@@ -128,6 +129,7 @@ export function CursorProvider({
   const [label, setLabel] = useState<LabelPayload>({ kind: "none" });
   const [mediaSrc, setMediaSrc] = useState<string>("");
   const [isActive, setIsActive] = useState<boolean>(false);
+  const [fullscreenElement, setFullscreenElement] = useState<HTMLElement | null>(null);
   const [customTextColor, setCustomTextColor] = useState<string>("");
   const [customBgColor, setCustomBgColor] = useState<string>("");
   const [customCircleOpacity, setCustomCircleOpacity] = useState<number | undefined>(undefined);
@@ -162,6 +164,28 @@ export function CursorProvider({
     setMediaShape("circle");
   }, []);
 
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setFullscreenElement(
+        document.fullscreenElement instanceof HTMLElement
+          ? document.fullscreenElement
+          : null
+      );
+    };
+
+    document.addEventListener(
+      "fullscreenchange",
+      handleFullscreenChange
+    );
+
+    return () => {
+      document.removeEventListener(
+        "fullscreenchange",
+        handleFullscreenChange
+      );
+    };
+  }, []);
+
   return (
     <CursorContext.Provider value={{ setState, resetState, setIsActive, isActive }}>
       {children}
@@ -177,6 +201,7 @@ export function CursorProvider({
           circleOpacity={customCircleOpacity}
           circleSize={customCircleSize}
           mediaShape={mediaShape}
+          fullscreenElement={fullscreenElement}
         />
       )}
     </CursorContext.Provider>
@@ -296,163 +321,410 @@ interface MouseFollowerProps extends CursorElementOptions {
   customTextColor: string;
   customBgColor: string;
   mediaShape: "circle" | "window";
+  fullscreenElement: HTMLElement | null;
 }
 
 function MouseFollower({
-  cursorState, label, mediaSrc, isActive, config, customTextColor, customBgColor, circleOpacity, circleSize, mediaShape
+  cursorState,
+  label,
+  mediaSrc,
+  isActive,
+  config,
+  customTextColor,
+  customBgColor,
+  circleOpacity,
+  circleSize,
+  mediaShape,
+  fullscreenElement,
 }: MouseFollowerProps): JSX.Element {
   const rootRef = useRef<HTMLDivElement>(null);
+
   const { onFrameRef, stateRef } = useMouseFollower(config);
 
-  useEffect(() => { stateRef.current = cursorState; }, [cursorState, stateRef]);
+  useEffect(() => {
+    stateRef.current = cursorState;
+  }, [cursorState, stateRef]);
 
-  onFrameRef.current = (x, y, angleDeg, stretch, visible): void => {
+  /*
+   * Update cursor position every animation frame.
+   */
+  onFrameRef.current = (
+    x,
+    y,
+    angleDeg,
+    stretch,
+    visible
+  ): void => {
     if (!rootRef.current) return;
+
     rootRef.current.style.opacity = visible ? "1" : "0";
-    // Stretch the cursor along its direction of travel — like a droplet
-    // being pulled — instead of shearing X and Y independently. Reads as
-    // a single natural elastic motion regardless of which way you move.
+
     const stretchX = 1 + stretch * 1.6;
     const stretchY = 1 - stretch * 0.6;
+
     rootRef.current.style.transform =
-      `translate3d(${x}px,${y}px,0) rotate(${angleDeg}deg) scale(${stretchX},${stretchY}) rotate(${-angleDeg}deg)`;
+      `translate3d(${x}px, ${y}px, 0) ` +
+      `rotate(${angleDeg}deg) ` +
+      `scale(${stretchX}, ${stretchY}) ` +
+      `rotate(${-angleDeg}deg)`;
   };
 
+  /*
+   * Resolve current cursor state.
+   */
   const effectiveState: EffectiveState =
-    isActive && ACTIVE_OVERRIDE_STATES.includes(cursorState) ? "active" : cursorState;
+    isActive &&
+    ACTIVE_OVERRIDE_STATES.includes(cursorState)
+      ? "active"
+      : cursorState;
 
-  const scale: number = SCALE_MAP[effectiveState] ?? 0.2;
-  const isMedia: boolean = cursorState === "media";
+  const scale: number =
+    SCALE_MAP[effectiveState] ?? 0.2;
+
+  const isMedia: boolean =
+    cursorState === "media";
+
   const labelVisible: boolean =
-    (cursorState === "text" || cursorState === "icon") && hasLabel(label);
+    (cursorState === "text" || cursorState === "icon") &&
+    hasLabel(label);
 
+  /*
+   * Resolve label font size.
+   */
   const labelFontSize: number = (() => {
     if (!hasLabel(label)) return 9;
-    if (label.kind === "icon" && isValidElement(label.content)) return 18;
-    if (label.kind === "icon") return (label.content as string).length > 2 ? 9 : 16;
-    return label.content.length > 2 ? 9 : 16;
+
+    if (
+      label.kind === "icon" &&
+      isValidElement(label.content)
+    ) {
+      return 18;
+    }
+
+    if (label.kind === "icon") {
+      return (label.content as string).length > 2
+        ? 9
+        : 16;
+    }
+
+    return label.content.length > 2
+      ? 9
+      : 16;
   })();
 
+  /*
+   * Resolve label node.
+   */
   const labelNode: ReactNode = (() => {
     if (!hasLabel(label)) return null;
 
     if (label.kind === "icon") {
-      return isValidElement(label.content) ? (
-        <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {label.content}
-        </span>
-      ) : (
-        label.content  // plain string glyph
-      );
+      if (isValidElement(label.content)) {
+        return (
+          <span
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {label.content}
+          </span>
+        );
+      }
+
+      return label.content;
     }
 
-    return label.content;  // text string
+    return label.content;
   })();
 
+  /*
+   * Root cursor style.
+   *
+   * This remains position: fixed in both normal
+   * and fullscreen mode.
+   *
+   * The important difference is that in fullscreen
+   * mode this element is PORTALED inside the
+   * fullscreen element.
+   */
   const rootStyle: CSSProperties = {
     position: "fixed",
     top: 0,
     left: 0,
+
+    /*
+     * This z-index is enough inside the fullscreen
+     * element because the cursor is now a descendant
+     * of the fullscreen top layer.
+     */
     zIndex: 9999999,
+
     opacity: 0,
+
     contain: "layout style size",
+
     direction: "ltr",
+
+    /*
+     * Cursor should never block interaction with
+     * video controls underneath it.
+     */
     pointerEvents: "none",
+
     userSelect: "none",
+
     willChange: "transform",
+
     mixBlendMode: "normal",
+
     color: "#f0ece4",
+
     transition: "opacity .3s, color .4s",
   };
 
-  const size = circleSize !== undefined ? circleSize : 24;
+  /*
+   * Main cursor circle.
+   */
+  const size =
+    circleSize !== undefined
+      ? circleSize
+      : 24;
+
   const circleStyle: CSSProperties = {
     position: "absolute",
+
     width: size,
     height: size,
+
     top: -(size / 2),
     left: -(size / 2),
+
     borderRadius: "50%",
-    background: customBgColor || "var(--primary)",
+
+    background:
+      customBgColor || "var(--primary)",
+
     transform: `scale(${scale})`,
-    opacity: circleOpacity !== undefined ? circleOpacity : 1,
-    transition: `transform ${isActive ? ".1s" : ".25s"} ease-in-out, opacity .1s, background .4s`,
+
+    opacity:
+      circleOpacity !== undefined
+        ? circleOpacity
+        : 1,
+
+    transition:
+      `transform ${
+        isActive ? ".1s" : ".25s"
+      } ease-in-out, ` +
+      `opacity .1s, ` +
+      `background .4s`,
   };
 
-  const resolvedTextColor = customTextColor ||
-    (label.kind !== "none" && label.textColor ? label.textColor : undefined) ||
+  /*
+   * Resolve label color.
+   */
+  const resolvedTextColor =
+    customTextColor ||
+    (
+      label.kind !== "none" &&
+      label.textColor
+        ? label.textColor
+        : undefined
+    ) ||
     "var(--primary)";
 
+  /*
+   * Cursor text/icon label.
+   */
   const labelStyle: CSSProperties = {
     position: "absolute",
+
     width: 36,
     height: 36,
+
     top: -18,
     left: -18,
+
     display: "flex",
+
     alignItems: "center",
     justifyContent: "center",
+
     textAlign: "center",
+
     fontSize: labelFontSize,
+
     color: resolvedTextColor,
-    fontFamily: "'Helvetica Neue', sans-serif",
+
+    fontFamily:
+      "'Helvetica Neue', sans-serif",
+
     fontWeight: 700,
+
     letterSpacing: ".08em",
+
     textTransform: "uppercase",
+
     lineHeight: 1.2,
+
     opacity: labelVisible ? 1 : 0,
-    transform: labelVisible ? "scale(1) rotate(0deg)" : "scale(0) rotate(10deg)",
-    transition: "opacity .4s, transform .3s",
+
+    transform: labelVisible
+      ? "scale(1) rotate(0deg)"
+      : "scale(0) rotate(10deg)",
+
+    transition:
+      "opacity .4s, transform .3s",
+
     pointerEvents: "none",
+
     whiteSpace: "nowrap",
   };
 
+  /*
+   * Media preview shown by the cursor.
+   */
   const mediaBoxStyle: CSSProperties = {
     position: "relative",
+
     width: "150%",
     height: "150%",
+
     overflow: "hidden",
-    borderRadius: mediaShape === "window" ? "20px" : "50%",
+
+    borderRadius:
+      mediaShape === "window"
+        ? "20px"
+        : "50%",
+
     padding: 1,
+
     opacity: isMedia ? 1 : 0,
-    transform: isMedia ? "scale(0.696) translateZ(0)" : "scale(0) translateZ(0)",
-    transition: "transform .4s, opacity .4s, border-radius .4s",
+
+    transform: isMedia
+      ? "scale(0.696) translateZ(0)"
+      : "scale(0) translateZ(0)",
+
+    transition:
+      "transform .4s, opacity .4s, border-radius .4s",
   };
+
+  /*
+   * The actual cursor element.
+   *
+   * We keep this as a React node so that it can
+   * either render normally or be portaled into
+   * the fullscreen element.
+   */
+  const cursorNode = (
+    <div
+      ref={rootRef}
+      style={rootStyle}
+      className="hidden md:block"
+    >
+      {/* Main cursor circle */}
+      <div style={circleStyle} />
+
+      {/* Text / icon label */}
+      <div style={labelStyle}>
+        {labelNode}
+      </div>
+
+      {/* Media preview */}
+      {mediaShape === "circle" ? (
+        <div
+          style={{
+            position: "absolute",
+            width: 400,
+            height: 400,
+            top: -200,
+            left: -200,
+            pointerEvents: "none",
+          }}
+        >
+          <div style={mediaBoxStyle}>
+            {mediaSrc && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={mediaSrc}
+                alt=""
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                }}
+              />
+            )}
+          </div>
+        </div>
+      ) : (
+        <div
+          style={{
+            position: "absolute",
+            width: 320,
+            height: 180,
+            top: -90,
+            left: -160,
+            pointerEvents: "none",
+          }}
+        >
+          <div style={mediaBoxStyle}>
+            {mediaSrc && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={mediaSrc}
+                alt=""
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                }}
+              />
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  /*
+   * Normal mode:
+   *
+   *   CursorProvider
+   *       └── MouseFollower
+   *
+   * Fullscreen mode:
+   *
+   *   .hero-header-vid
+   *       ├── video
+   *       ├── controls
+   *       └── MouseFollower
+   *
+   * createPortal() moves the cursor into the
+   * fullscreen top layer so z-index can actually
+   * place it above the fullscreen video.
+   */
+  const renderedCursor =
+    fullscreenElement
+      ? createPortal(
+          cursorNode,
+          fullscreenElement
+        )
+      : cursorNode;
 
   return (
     <>
-      <style>{`html, *, *:hover { cursor: none !important; }`}</style>
+      {/* Hide native cursor */}
+      <style>
+        {`html, *, *:hover {
+          cursor: none !important;
+        }`}
+      </style>
 
-      <div ref={rootRef} style={rootStyle} className="hidden md:block">
-        {/* Circle */}
-        <div style={circleStyle} />
-
-        {/* Label: text string, glyph, or Lucide/ReactNode icon */}
-        <div style={labelStyle}>{labelNode}</div>
-
-        {/* Media preview — circle (400×400) or window (320×180 with 16:9 aspect-ratio) */}
-        {mediaShape === "circle" ? (
-          <div style={{ position: "absolute", width: 400, height: 400, top: -200, left: -200, pointerEvents: "none" }}>
-            <div style={mediaBoxStyle}>
-              {mediaSrc && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={mediaSrc} alt=""
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-              )}
-            </div>
-          </div>
-        ) : (
-          <div style={{ position: "absolute", width: 320, height: 180, top: -90, left: -160, pointerEvents: "none" }}>
-            <div style={mediaBoxStyle}>
-              {mediaSrc && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={mediaSrc} alt=""
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+      {renderedCursor}
     </>
   );
 }

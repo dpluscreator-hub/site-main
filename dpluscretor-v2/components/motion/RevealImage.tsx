@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, type TargetAndTransition } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ImagePro, type ImageProState } from "./ImagePro";
+import { ImagePro, type ImageProState } from "@/components/globals/ImagePro";
 import { cn } from "@/lib/utils";
 
 gsap.registerPlugin(ScrollTrigger);
