@@ -1,33 +1,32 @@
 "use client"
+import CircularText from "@/components/motion/CircularText";
+import { RevealImage } from "@/components/motion/RevealImage";
+import { Magnetic } from "@/components/motion/magnetic";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useMounted } from "@/hooks/use-mounted";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AiFillYoutube } from "react-icons/ai";
+import { FaFacebookSquare, FaHandPointer, FaInstagram, FaLinkedin, FaPinterestSquare, FaWhatsapp } from "react-icons/fa";
 import { GoHomeFill } from "react-icons/go";
-import BlurText from "@/components/ui/BlurText";
-
+import { IconType } from "react-icons/lib";
+import { MdOutlineAlternateEmail } from "react-icons/md";
+import { RiFiverrFill, RiTwitterXFill } from "react-icons/ri";
+import { DPlusVisitingCard } from "../cards/DPlusVisitingCard";
 import { Marquee, MarqueeContent, MarqueeItem } from "../kibo-ui/marquee";
+import { HoverTextReveal } from "../motion/HoverTextReveal";
+import { TextRevealOnView } from "../motion/TextRevealOnView";
 import { ThemeToggler } from "../togglers/ThemeToggler";
 import { Button } from "../ui/button";
-import { MenuOverlay } from "./MenuOverlay";
-import { RevealImage } from "./RevealImage";
-import { useCursorElement } from "./cursor/advance-cursor";
-import CircularText from "./CircularText";
-import { Magnetic } from "./magnetic";
-import { DPlusVisitingCard } from "../cards/DPlusVisitingCard";
 import { ImagePro } from "./ImagePro";
-import { FaPinterestSquare, FaLinkedin, FaWhatsapp, FaInstagram, FaFacebookSquare } from "react-icons/fa";
-import { RiTwitterXFill, RiFiverrFill } from "react-icons/ri";
-import { AiFillYoutube } from "react-icons/ai";
-import { MdOutlineAlternateEmail } from "react-icons/md";
-import { IconType } from "react-icons/lib";
-import { FaHandPointer } from "react-icons/fa";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { MenuOverlay } from "./MenuOverlay";
+import { useCursorElement } from "./cursor/advance-cursor";
 
 interface SocialLink {
     name: string,
@@ -150,7 +149,7 @@ export const Navbar = () => {
             : "/assets/logo/logo-light.svg";
 
     const stencilSrc = !mounted
-        ? "/assets/logo/logo-stencil.svg"
+        ? "/assets/logo/logo-stencil-dark.svg"
         : theme === "light"
             ? "/assets/logo/logo-stencil-dark.svg"
             : "/assets/logo/logo-stencil-light.svg";
@@ -189,38 +188,59 @@ export const Navbar = () => {
     ]
     return (
         <>
-            <nav className="relative z-50 px-4 sm:px-6 md:px-10 lg:px-20 xl:px-32 2xl:px-48 py-2 h-16 sm:h-18 md:h-20 lg:h-22.5 bg-background">
-                <div className="flex items-center justify-between h-full">
-                    <Link {...cursor} href={"/"} onClick={closeMenu}>
+            <nav
+                data-navbar
+                className="fixed top-2.5 left-3 right-3 sm:left-6 sm:right-6 md:left-8 md:right-8 lg:left-12 lg:right-12 z-50 flex items-center justify-between bg-background/40 dark:bg-background/45 backdrop-blur-[15px] border border-border/40 dark:border-white/10 rounded-full px-6 sm:px-8 md:px-10 lg:px-12 py-2 sm:py-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.3)] transition-all duration-300"
+            >
+                <div className="w-full flex items-center justify-between">
+                    <Link {...cursor} href={"/"} onClick={closeMenu} className="flex items-center">
                         <RevealImage
                             src={logoSrc}
                             alt="D Plus Creator Logo"
                             width={121.25}
                             height={53.5}
-                            containerClassName="object-cover w-[90px] h-[40px] sm:w-[100px] sm:h-[44px] md:w-[110px] md:h-[48px] lg:w-[121.25px] lg:h-[53.5px]"
+                            containerClassName="object-cover w-[85px] h-[38px] sm:w-[95px] sm:h-[42px] md:w-[105px] md:h-[46px] lg:w-[115px] lg:h-[50px]"
                             fetchPriority="high"
                             loading="eager"
                         />
                     </Link>
 
                     <div className="flex items-center gap-3 sm:gap-4 md:gap-5">
-                        <ThemeToggler
-                            variant="rectangle"
-                            start="center"
-                            className="size-7 sm:size-8"
-                        />
-                        <MenuToggleButton
-                            isOpen={isMenuOpen}
-                            onToggle={() => setIsMenuOpen((prev) => !prev)}
-                        />
+                        <Tooltip>
+                            <TooltipTrigger
+                                render={
+                                    <ThemeToggler
+                                        variant="rectangle"
+                                        start="center"
+                                        className="size-7 sm:size-8"
+                                    />
+                                }
+                            />
+                            <TooltipContent side="top" className="max-w-64 rounded-sm py-2">
+                                {theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+                            </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger
+                                render={
+                                    <MenuToggleButton
+                                        isOpen={isMenuOpen}
+                                        onToggle={() => setIsMenuOpen((prev) => !prev)}
+                                    />
+                                }
+                            />
+                            <TooltipContent side="top" className="max-w-64 rounded-sm py-2">
+                                {isMenuOpen ? "Close Menu" : "Open Menu"}
+                            </TooltipContent>
+                        </Tooltip>
                     </div>
                 </div>
             </nav>
 
-            <MenuOverlay open={isMenuOpen} className="bg-accent">
+            <MenuOverlay open={isMenuOpen} className="bg-background z-9999">
                 <div
                     data-lenis-prevent
-                    className="flex flex-col w-full h-full overflow-y-auto lg:overflow-hidden overscroll-contain"
+                    className="flex flex-col w-full h-full overflow-y-auto lg:overflow-hidden overscroll-contain "
                 >
                     {/* TOP: art card + nav links */}
                     <div className="flex flex-col lg:flex-row lg:flex-2/3">
@@ -247,14 +267,22 @@ export const Navbar = () => {
                     <div className="flex flex-col lg:flex-1/3">
                         <div className="flex flex-col md:flex-row lg:flex-3/5">
                             <div className="w-full md:flex-2/5 pr-6 sm:pr-8 lg:pr-12 py-4">
-                                <BlurText
+                                {/* <BlurText
                                         text="DPlus Creators designs digital experiences that combine thoughtful design, intelligent technology, and creative storytelling to help brands grow with confidence."
                                         animateBy="words"
                                         delay={0.08}
-                                        duration={0.7}
+                                        once={false}
+                                        duration={0.5}
                                         direction="bottom"
                                         className="text-lg ml-3 sm:text-xl md:text-2xl lg:text-3xl font-semibold font-subtext"
-                                />
+                                /> */}
+                                <TextRevealOnView
+                                    once={false}
+                                >
+                                    <h3 className="text-lg ml-3 sm:text-xl md:text-2xl lg:text-3xl font-semibold font-subtext">
+                                        DPlus Creators designs digital experiences that combine thoughtful design, intelligent technology, and creative storytelling to help brands grow with confidence.
+                                    </h3>
+                                </TextRevealOnView>
                             </div>
                             <div className="w-full md:flex-3/5 flex flex-col gap-6 md:gap-0 ">
                                 <div className="flex justify-start pl-4 md:flex-1/3 md:justify-end">
@@ -340,12 +368,12 @@ const MenuToggleButton = ({
     const cursor = useCursorElement({
         state: "pointer",
     });
-    const lineClass =
+        const lineClass =
         "h-0.5 bg-foreground transition-[width,rotate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]";
 
     return (
         <Button
-            variant={"ghost"}
+            variant={"none"}
             size={"icon"}
             {...cursor}
             onClick={onToggle}
@@ -387,12 +415,10 @@ const MenuLink = ({
     item: MenuLink;
     closeMenu: () => void;
 }) => {
-    // Cursor becomes an "open" arrow while hovering a nav link — reinforces
-    // that clicking will actually navigate somewhere.
     const cursor = useCursorElement({
         state: "icon",
         icon: <FaHandPointer className="size-9 text-foreground" />,
-        backgroundColor: "transparent"
+        backgroundColor: "transparent",
     });
 
     return (
@@ -400,29 +426,14 @@ const MenuLink = ({
             href={item.href}
             onClick={closeMenu}
             {...cursor}
-            className="group relative inline-block overflow-hidden"
+            className="group inline-block whitespace-nowrap"
         >
-            {/* Revealed text */}
-            <span className="relative z-0 text-primary text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-heading">
-                {item.label}
-            </span>
-
-            {/* Black curtain */}
-            <span
-                className="
-                  absolute inset-0
-                  overflow-hidden
-                  w-full
-                  transition-[width]
-                  duration-700
-                  ease-[cubic-bezier(.83,0,.17,1)]
-                  group-hover:w-0
-              "
+            <HoverTextReveal
+                className="text-foreground text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-heading"
+                revealClassName="text-primary text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-heading"
             >
-                <span className="block whitespace-nowrap text-foreground text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-heading">
-                    {item.label}
-                </span>
-            </span>
+                {item.label}
+            </HoverTextReveal>
         </Link>
     );
 };
@@ -489,16 +500,18 @@ const SocialLinkItem = ({
             {...cursor}
         >
             <Tooltip>
-                <TooltipTrigger>
-                    <div
-                        className={cn(
-                            "flex items-center justify-center py-3 pl-3",
-                            !isLast && "pr-3"
-                        )}
-                    >
-                        <Icon className="size-8" />
-                    </div>
-                </TooltipTrigger>
+                <TooltipTrigger
+                    render={
+                        <div
+                            className={cn(
+                                "flex items-center justify-center py-3 pl-3",
+                                !isLast && "pr-3"
+                            )}
+                        >
+                            <Icon className="size-8" />
+                        </div>
+                    }
+                />
                 <TooltipContent side="top" className="max-w-64 rounded-sm py-2">
                     <div className="space-y-1">
                         <div className="flex items-center gap-1.5">

@@ -45,7 +45,7 @@ export default function RootLayout({
           <ThemeProvider attribute="class" enableSystem={false}>
             <CursorProvider>
               <TooltipProvider>
-                <div className="bg-background text-foreground">
+                <div className="bg-background text-foreground relative">
                 <Navbar />
                 {children}
                 <Footer />

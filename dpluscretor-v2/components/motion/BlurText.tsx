@@ -8,6 +8,7 @@ interface BlurTextProps {
   animateBy?: "words" | "letters";
   delay?: number;
   duration?: number;
+  once?: boolean
   direction?: "top" | "bottom";
 }
 
@@ -16,6 +17,7 @@ export default function BlurText({
   className = "",
   animateBy = "words",
   delay = 0.06,
+  once= true,
   duration = 0.6,
   direction = "bottom",
 }: BlurTextProps) {
@@ -27,7 +29,7 @@ export default function BlurText({
       className={`flex flex-wrap ${className}`}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: false, amount: 0.3 }}
+      viewport={{ once: true, amount: 0.3 }}
       variants={{
         visible: {
           transition: {

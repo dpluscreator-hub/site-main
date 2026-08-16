@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { AnimationStart, AnimationVariant, useThemeToggle } from "@/components/ui/skiper-ui/skiper26";
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
 import { useCursorElement } from "../globals/cursor/advance-cursor";
 
 
@@ -13,13 +13,15 @@ export const ThemeToggler = ({
     start = "center",
     blur = false,
     gifUrl = "",
+    onClick,
+    ...buttonProps
 }: {
     className?: string;
     variant?: AnimationVariant;
     start?: AnimationStart;
     blur?: boolean;
     gifUrl?: string;
-}) => {
+} & Omit<ButtonProps, "onClick"> & { onClick?: React.ComponentProps<typeof Button>["onClick"] }) => {
     const { isDark, toggleTheme } = useThemeToggle({
         variant,
         start,
@@ -60,7 +62,11 @@ export const ThemeToggler = ({
                 "cursor-pointer rounded-full border p-0 transition-all duration-300 active:scale-95",
                 className,
             )}
-            onClick={toggleTheme}
+            {...buttonProps}
+            onClick={(event) => {
+                toggleTheme();
+                onClick?.(event);
+            }}
             aria-label="Toggle theme"
         >
             <span className="sr-only">Toggle theme</span>

@@ -1,0 +1,1 @@
+export { Marquee, type MarqueeProps, MarqueeContent, type MarqueeContentProps, MarqueeFade, type MarqueeFadeProps, MarqueeItem, type MarqueeItemProps } from "@/components/kibo-ui/marquee"
