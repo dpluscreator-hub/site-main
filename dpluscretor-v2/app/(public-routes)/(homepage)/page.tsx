@@ -11,10 +11,13 @@ import "./home.css";
 import { Preloader } from "./Preloader";
 import { HeroVideoPlayer } from "@/components/sections/homepage/HeroVideoPlayer";
 import { CreativeManifestoSection } from "@/components/sections/homepage/CreativeManifestoSection";
+import { useMenu } from "@/context/MenuContext";
 
 gsap.registerPlugin(SplitText, CustomEase, ScrollTrigger);
 
 CustomEase.create("hop", "0.8, 0, 0.1, 1");
+
+let preloaderPlayedGlobal = false;
 
 const ROTATING_WORDS = [
   "Digital",
@@ -27,6 +30,7 @@ const ROTATING_WORDS = [
 ];
 
 export default function Home() {
+  const { isMenuOpen } = useMenu();
   const lenis = useLenis();
   const lenisRef = useRef(lenis);
   const isIntroPlayingRef = useRef(true);
@@ -43,6 +47,7 @@ export default function Home() {
       lenis?.stop();
       lenis?.scrollTo(0, { immediate: true });
       document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
     }
   }, [lenis]);
 
@@ -53,134 +58,53 @@ export default function Home() {
     const heroImageFrame = heroHeaderImageRef.current;
     const heroVideoFrame = heroHeaderVideoRef.current;
 
-    const ctx = gsap.context(() => {
-      const heroRows = gsap.utils.toArray<HTMLElement>(".hero-header-row");
-      const heroHeadings = gsap.utils.toArray<HTMLHeadingElement>(
-        ".hero-header-row h1"
-      );
-      const heroImages = gsap.utils.toArray<HTMLImageElement>(
-        ".hero-header-img img"
-      );
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+    }
 
-      const counter = { progress: 0 };
-      const wordCycle = { progress: 0 };
-      const imageCycle = { progress: 0 };
+    let ctx: gsap.Context;
 
-      let activeWord = 0;
-      let activeImage = 0;
-
-      // 1. Split hero headings
-      const headingSplits = heroHeadings.map((heading) =>
-        SplitText.create(heading, {
-          type: "words",
-          mask: "words",
-          wordsClass: "word",
-        })
-      );
-
-      // 2. Set initial hidden/offset states
-      headingSplits.forEach((split, rowIndex) => {
-        gsap.set(split.words, {
-          x: rowIndex === 1 ? "100%" : "-100%",
-        });
-      });
-
-      // Navbar out of viewport above screen
-      gsap.set("[data-navbar], nav", {
-        yPercent: -120,
-      });
-
-      // Hero footer hidden initially
-      gsap.set(".hero-footer p", {
-        opacity: 0,
-      });
-
-      if (heroVideoFrame) {
-        gsap.set(heroVideoFrame, {
-          opacity: 0,
-          pointerEvents: "none",
-        });
-      }
-
-      if (heroImageFrame) {
-        const rootFontSize = parseFloat(
-          getComputedStyle(document.documentElement).fontSize
+    document.fonts.ready.then(() => {
+      ctx = gsap.context(() => {
+        const heroRows = gsap.utils.toArray<HTMLElement>(".hero-header-row");
+        const heroHeadings = gsap.utils.toArray<HTMLHeadingElement>(
+          ".hero-header-row h1"
         );
-        const leftEdgeOffset =
-          2.5 * rootFontSize - heroImageFrame.getBoundingClientRect().left;
+        const heroImages = gsap.utils.toArray<HTMLImageElement>(
+          ".hero-header-img img"
+        );
+        const navElements = gsap.utils.toArray("[data-navbar-item]");
 
-        gsap.set(heroImageFrame, {
-          x: leftEdgeOffset,
-        });
-      }
+        const counter = { progress: 0 };
+        const wordCycle = { progress: 0 };
+        const imageCycle = { progress: 0 };
 
-      const renderCounter = () => {
-        if (!preloaderCounter) return;
-        const value = Math.round(counter.progress);
-        preloaderCounter.textContent = String(value).padStart(3, "0");
-      };
+        let activeWord = 0;
+        let activeImage = 0;
 
-      const renderWord = () => {
-        if (!preloaderWord) return;
-        const index = Math.round(wordCycle.progress);
-        if (index === activeWord) return;
-        activeWord = index;
-        preloaderWord.innerText = ROTATING_WORDS[index];
-      };
-
-      const renderImage = () => {
-        if (!heroImages.length) return;
-        const index = Math.round(imageCycle.progress) % heroImages.length;
-        if (index === activeImage) return;
-        activeImage = index;
-        heroImages.forEach((image, imageIndex) => {
-          image.style.opacity = imageIndex === index ? "1" : "0";
-        });
-      };
-
-      const expandImageToFullScreen = () => {
-        if (!heroImageFrame) return;
-        heroRows.forEach((row) => {
-          gsap.set(row, {
-            flex: "none",
-            height: row.getBoundingClientRect().height,
-          });
-        });
-
-        gsap.set(heroHeadings, {
-          color: "white",
-          mixBlendMode: "difference",
-          zIndex: 10,
-        });
-
-        gsap.set([".hero-footer", ".hero-footer p"], {
-          color: "white",
-          mixBlendMode: "difference",
-          zIndex: 10,
-        });
-
-        const frame = heroImageFrame.getBoundingClientRect();
-
-        gsap.set(heroImageFrame, {
-          position: "fixed",
-          top: frame.top,
-          left: frame.left,
-          width: frame.width,
-          height: frame.height,
-          x: 0,
-          y: 0,
-          zIndex: 6,
-        });
+        // 1. Split hero headings
+        const headingSplits = heroHeadings.map((heading) =>
+          SplitText.create(heading, {
+            type: "words",
+            mask: "words",
+            wordsClass: "word",
+          })
+        );
 
         const createHeroScrollAnimation = () => {
           if (!heroImageFrame) return;
 
+          ScrollTrigger.getById("hero-scroll-trigger")?.kill();
+
           const scrollTL = gsap.timeline({
+            id: "hero-scroll-trigger",
             scrollTrigger: {
+              id: "hero-scroll-trigger",
               trigger: ".hero",
               start: "top top",
               end: "bottom top",
-              scrub: true
+              scrub: true,
+              invalidateOnRefresh: true,
             },
           });
 
@@ -190,7 +114,7 @@ export default function Home() {
               height: "65vh",
               top: "18vh",
               left: "17.5%",
-              borderRadius: "4rem",
+              borderRadius: "24px",
               border: "solid var(--color-primary) 0.4rem",
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.6)",
               ease: "none",
@@ -214,6 +138,10 @@ export default function Home() {
 
         const enableScroll = () => {
           isIntroPlayingRef.current = false;
+          preloaderPlayedGlobal = true;
+          if (typeof window !== "undefined") {
+            (window as unknown as { preloaderPlayed?: boolean }).preloaderPlayed = true;
+          }
 
           document.body.style.overflow = "";
           document.documentElement.style.overflow = "";
@@ -231,122 +159,302 @@ export default function Home() {
           }
 
           createHeroScrollAnimation();
-
           ScrollTrigger.refresh();
         };
 
-        const expandTL = gsap.timeline({
-          onComplete: enableScroll,
-        });
-        expandTL
-          .to(heroImageFrame, {
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100svh",
-            duration: 1.25,
-            ease: "hop",
-          })
-          .to(
-            ".hero-footer p",
-            {
-              opacity: 1,
-              duration: 0.8,
-              ease: "power3.out",
-            },
-            "-=0.6"
-          )
-          .to(
-            "[data-navbar], nav",
-            {
-              yPercent: 0,
-              duration: 1,
-              ease: "power3.out",
-            },
-            "-=0.8"
-          );
-      };
+        const expandImageToFullScreen = () => {
+          if (!heroImageFrame) return;
 
-      // 3. Unified Master Sequence
-      const heroTL = gsap.timeline({ delay: 0.2 });
+          heroRows.forEach((row) => {
+            gsap.set(row, {
+              flex: "none",
+              height: row.getBoundingClientRect().height,
+            });
+          });
 
-      if (preloader) {
-        // Step A: Preloader counting & cycles
-        heroTL
-          .to(counter, {
-            progress: 100,
-            duration: 3,
-            onUpdate: renderCounter,
-          })
-          .to(
-            heroImageFrame,
-            {
-              x: 0,
-              duration: 3,
-              ease: "none",
-            },
-            0
-          )
-          .to(
-            wordCycle,
-            {
-              progress: ROTATING_WORDS.length - 1,
-              duration: 3,
-              ease: "none",
-              onUpdate: renderWord,
-            },
-            0
-          )
-          .to(
-            imageCycle,
-            {
-              progress: heroImages.length * 3 - 1,
-              duration: 3,
-              ease: "none",
-              onUpdate: renderImage,
-            },
-            0
-          )
-          // Step B: Fade preloader info
-          .to(
-            [
-              ".preloader-header",
-              ".preloader-counter",
-              ".preloader-footer-copy",
-            ],
-            {
-              opacity: 0,
-              duration: 0.25,
-            },
-            "+=0.35"
-          )
-          // Step C: Lift preloader curtain
-          .to(preloader, {
-            clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
-            duration: 1,
-            ease: "hop",
-            onComplete: () => {
-              if (preloader) {
-                preloader.style.display = "none";
-              }
-            },
-          })
-          // Step D: Slide hero words into place and expand image
-          .to(
-            ".word",
-            {
-              x: "0%",
+          gsap.set(heroHeadings, {
+            color: "white",
+            mixBlendMode: "difference",
+            zIndex: 10,
+          });
+
+          gsap.set([".hero-footer", ".hero-footer p"], {
+            color: "white",
+            mixBlendMode: "difference",
+            zIndex: 10,
+          });
+
+          const frame = heroImageFrame.getBoundingClientRect();
+
+          gsap.set(heroImageFrame, {
+            position: "fixed",
+            top: frame.top,
+            left: frame.left,
+            width: frame.width,
+            height: frame.height,
+            x: 0,
+            y: 0,
+            zIndex: 6,
+          });
+
+          const expandTL = gsap.timeline({
+            onComplete: enableScroll,
+          });
+
+          expandTL
+            .to(heroImageFrame, {
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100svh",
               duration: 1.25,
-              ease: "power3.out",
-              onComplete: expandImageToFullScreen,
-            },
-            "-=0.5"
-          );
-      }
-    }, containerRef);
+              ease: "hop",
+            })
+            .to(
+              ".hero-footer p",
+              {
+                opacity: 1,
+                duration: 0.8,
+                ease: "power3.out",
+              },
+              "-=0.6"
+            )
+            .to(
+              navElements,
+              {
+                yPercent: 0,
+                duration: 1,
+                ease: "power3.out",
+                stagger: 0.03,
+                onComplete: () => {
+                  gsap.set(navElements, { clearProps: "transform" });
+                },
+              },
+              "-=0.8"
+            );
+        };
+
+        if (preloaderPlayedGlobal) {
+          // ========================================================
+          // Case 2: Subsequent Visit / Returning from another page
+          // Preloader is SKIPPED, but Home Text Reveal + Image Expand MUST PLAY!
+          // ========================================================
+          if (preloader) {
+            preloader.style.display = "none";
+          }
+          if (typeof document !== "undefined") {
+            document.documentElement.classList.remove("hide-nav-initially");
+          }
+
+          if (heroImageFrame) {
+            gsap.set(heroImageFrame, {
+              position: "relative",
+              top: "auto",
+              left: "auto",
+              x: 0,
+              y: 0,
+              zIndex: 105,
+              clearProps: "position,top,left,width,height,borderRadius,border,boxShadow",
+            });
+          }
+
+          if (heroImages.length) {
+            heroImages.forEach((image, imageIndex) => {
+              image.style.opacity = imageIndex === heroImages.length - 1 ? "1" : "0";
+            });
+          }
+
+          headingSplits.forEach((split, rowIndex) => {
+            gsap.set(split.words, {
+              x: rowIndex === 1 ? "100%" : "-100%",
+            });
+          });
+
+          gsap.set(heroHeadings, {
+            color: "var(--color-foreground)",
+            mixBlendMode: "normal",
+          });
+
+          gsap.set([".hero-footer", ".hero-footer p"], {
+            color: "var(--color-foreground)",
+            mixBlendMode: "normal",
+          });
+
+          gsap.set(navElements, {
+            yPercent: -150,
+          });
+
+          gsap.set(".hero-footer p", {
+            opacity: 0,
+          });
+
+          if (heroVideoFrame) {
+            gsap.set(heroVideoFrame, {
+              opacity: 0,
+              pointerEvents: "none",
+            });
+          }
+
+          // Hero Entrance Timeline
+          const entranceTL = gsap.timeline({ delay: 0.25 });
+
+          entranceTL.to(".word", {
+            x: "0%",
+            duration: 1.15,
+            ease: "power3.out",
+            onComplete: expandImageToFullScreen,
+          });
+        } else {
+          // ========================================================
+          // Case 1: First visit/hard reload: Play full preloader sequence
+          // ========================================================
+          // Set initial hidden/offset states
+          headingSplits.forEach((split, rowIndex) => {
+            gsap.set(split.words, {
+              x: rowIndex === 1 ? "100%" : "-100%",
+            });
+          });
+
+          // Navbar out of viewport above screen
+          gsap.set(navElements, {
+            yPercent: -150,
+          });
+
+          // Hero footer hidden initially
+          gsap.set(".hero-footer p", {
+            opacity: 0,
+          });
+
+          if (heroVideoFrame) {
+            gsap.set(heroVideoFrame, {
+              opacity: 0,
+              pointerEvents: "none",
+            });
+          }
+
+          if (heroImageFrame) {
+            const rootFontSize = parseFloat(
+              getComputedStyle(document.documentElement).fontSize
+            );
+            const leftEdgeOffset =
+              2.5 * rootFontSize - heroImageFrame.getBoundingClientRect().left;
+
+            gsap.set(heroImageFrame, {
+              x: leftEdgeOffset,
+            });
+          }
+
+          const renderCounter = () => {
+            if (!preloaderCounter) return;
+            const value = Math.round(counter.progress);
+            preloaderCounter.textContent = String(value).padStart(3, "0");
+          };
+
+          const renderWord = () => {
+            if (!preloaderWord) return;
+            const index = Math.round(wordCycle.progress);
+            if (index === activeWord) return;
+            activeWord = index;
+            preloaderWord.innerText = ROTATING_WORDS[index];
+          };
+
+          const renderImage = () => {
+            if (!heroImages.length) return;
+            const index = Math.round(imageCycle.progress) % heroImages.length;
+            if (index === activeImage) return;
+            activeImage = index;
+            heroImages.forEach((image, imageIndex) => {
+              image.style.opacity = imageIndex === index ? "1" : "0";
+            });
+          };
+
+          // 3. Unified Master Sequence
+          const heroTL = gsap.timeline({ delay: 0.2 });
+
+          if (preloader) {
+            // Step A: Preloader counting & cycles
+            heroTL
+              .to(counter, {
+                progress: 100,
+                duration: 3,
+                onUpdate: renderCounter,
+              })
+              .to(
+                heroImageFrame,
+                {
+                  x: 0,
+                  duration: 3,
+                  ease: "none",
+                },
+                0
+              )
+              .to(
+                wordCycle,
+                {
+                  progress: ROTATING_WORDS.length - 1,
+                  duration: 3,
+                  ease: "none",
+                  onUpdate: renderWord,
+                },
+                0
+              )
+              .to(
+                imageCycle,
+                {
+                  progress: heroImages.length * 3 - 1,
+                  duration: 3,
+                  ease: "none",
+                  onUpdate: renderImage,
+                },
+                0
+              )
+              // Step B: Fade preloader info
+              .to(
+                [
+                  ".preloader-header",
+                  ".preloader-counter",
+                  ".preloader-footer-copy",
+                ],
+                {
+                  opacity: 0,
+                  duration: 0.25,
+                },
+                "+=0.35"
+              )
+              // Step C: Lift preloader curtain
+              .to(preloader, {
+                clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+                duration: 1,
+                ease: "hop",
+                onStart: () => {
+                  if (typeof document !== "undefined") {
+                    document.documentElement.classList.remove("hide-nav-initially");
+                  }
+                },
+                onComplete: () => {
+                  if (preloader) {
+                    preloader.style.display = "none";
+                  }
+                },
+              })
+              // Step D: Slide hero words into place and expand image
+              .to(
+                ".word",
+                {
+                  x: "0%",
+                  duration: 1.25,
+                  ease: "power3.out",
+                  onComplete: expandImageToFullScreen,
+                },
+                "-=0.5"
+              );
+          }
+        }
+      }, containerRef);
+    });
 
     return () => {
-      ctx.revert();
+      if (ctx) ctx.revert();
       isIntroPlayingRef.current = false;
       document.body.style.overflow = "";
       document.documentElement.style.overflow = "";
@@ -354,6 +462,7 @@ export default function Home() {
         lenisRef.current.start();
         lenisRef.current.resize();
       }
+      ScrollTrigger.getAll().forEach((t) => t.kill());
       ScrollTrigger.refresh();
     };
   }, []);
@@ -366,7 +475,10 @@ export default function Home() {
         wordRef={preloaderWordRef}
       />
 
-      <main>
+      <main
+      // className="flex-1 flex flex-col w-full min-h-full relative transition-[border-radius,border-color] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] border-2"
+      // style={isMenuOpen ? { transform: "translate3d(0, 0, 0)" } : undefined}
+      >
         <HeroSection
           imageFrameRef={heroHeaderImageRef}
         />
@@ -378,7 +490,7 @@ export default function Home() {
           />
         </div>
 
-        <CreativeManifestoSection/>
+        <CreativeManifestoSection />
       </main>
     </div>
   );

@@ -2,9 +2,6 @@
 /* ---------H-E-R-O--------- */
 /* ------------------------- */
 
-nav[data-navbar] {
-    will-change: transform;
-}
 
 main {
     min-height: 100%;
@@ -167,20 +164,19 @@ section {
 .hero-video-section {
     position: relative;
     width: 100%;
-    height: 100vh;
+    height: 100svh;
     z-index: 5;
 }
 
 .hero-header-vid {
-    position: sticky;
+    position: absolute;
     top: 18vh;
+    left: 17.5%;
 
     width: 65%;
     height: 65vh;
 
-    margin: 0 auto;
-
-    border-radius: 4rem;
+    border-radius: 24px;
     border: solid var(--color-primary) 0.4rem;
 
     overflow: hidden;
@@ -280,4 +276,9 @@ section {
     .hero-footer {
         bottom: 25svh;
     }
+}
+
+/* FOUC navbar hide rule */
+.hide-nav-initially [data-navbar-item] {
+    transform: translateY(-200px) !important;
 }

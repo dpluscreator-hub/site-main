@@ -16,7 +16,7 @@ interface MenuOverlayProps {
 
 export function MenuOverlay({
   open,
-  topOffsetClassName = "top-16 sm:top-18 md:top-20 lg:top-22.5",
+  topOffsetClassName = "top-0",
   children,
   className,
 }: MenuOverlayProps) {

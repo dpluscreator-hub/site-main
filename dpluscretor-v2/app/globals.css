@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "lenis/dist/lenis.css";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -7,6 +8,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand: var(--brand);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-heading);
@@ -52,6 +54,7 @@
 :root {
   --background: oklch(0.987 0.002 197.1);
   --foreground: oklch(0.148 0.004 228.8);
+  --brand: oklch(81.397% 0.15834 73.246); /* Hex equivalent #ffb033 */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.148 0.004 228.8);
   --popover: oklch(1 0 0);
@@ -87,6 +90,7 @@
 .dark {
   --background: oklch(0.148 0.004 228.8);
   --foreground: oklch(0.987 0.002 197.1);
+  --brand: oklch(81.397% 0.15834 73.246);
   --card: oklch(0.218 0.008 223.9);
   --card-foreground: oklch(0.987 0.002 197.1);
   --popover: oklch(0.218 0.008 223.9);
@@ -123,22 +127,36 @@
     @apply border-border outline-ring/50;
   }
   body {
-
-    
     @apply bg-background text-foreground;
   }
   html {
     @apply font-sans scrollbar-thin scrollbar-thumb-primary;
   }
   .reveal-line {
-  overflow: hidden;
-  display: block;
-  perspective: 800px;
-  padding-bottom: 1px;
+    overflow: hidden;
+    display: block;
+    perspective: 800px;
+    padding-bottom: 1px;
   }
   .char {
-  display: inline-block;
-  will-change: transform;
-}
+    display: inline-block;
+    will-change: transform;
+  }
 }
 
+/* Base Lenis settings */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}

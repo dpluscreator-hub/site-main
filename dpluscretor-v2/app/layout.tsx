@@ -11,14 +11,14 @@ import {
 } from "../fonts";
 
 import {
-  SmoothScrollProvider,
   ThemeProvider,
   CursorProvider,
   TooltipProvider,
 } from "@/components/globals/providers";
 import { Toaster } from "@/components/ui/toast";
-import { Footer } from "@/components/globals/Footer"
-import { Navbar } from "@/components/globals/Navbar"
+import { MenuProvider } from "@/context/MenuContext";
+import { SmoothScroll } from "@/components/SmoothScroll";
+import { MenuLayout } from "@/components/MenuLayout";
 
 
 export const metadata: Metadata = {
@@ -34,27 +34,42 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, oxaniumHeading.variable, "font-sans", raleway.variable, publicSansHeading.variable)}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var isHome = window.location.pathname === '/';
+                  if (isHome) {
+                    document.documentElement.classList.add('hide-nav-initially');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         suppressHydrationWarning
         suppressContentEditableWarning
-        className="min-h-full flex flex-col"
+        className="min-h-full flex flex-col bg-zinc-950 text-zinc-100 selection:bg-violet-500 selection:text-white"
       >
-        <SmoothScrollProvider>
-          <ThemeProvider attribute="class" enableSystem={false}>
-            <CursorProvider>
-              <TooltipProvider>
-                <div className="bg-background text-foreground relative">
-                <Navbar />
-                {children}
-                <Footer />
-                </div>
-                <Toaster />
-              </TooltipProvider>
-            </CursorProvider>
-          </ThemeProvider>
-        </SmoothScrollProvider>
+        <MenuProvider>
+          <SmoothScroll>
+            <ThemeProvider attribute="class" enableSystem={false}>
+              <CursorProvider>
+                <TooltipProvider>
+                  <MenuLayout>{children}</MenuLayout>
+                  <Toaster />
+                </TooltipProvider>
+              </CursorProvider>
+            </ThemeProvider>
+          </SmoothScroll>
+        </MenuProvider>
       </body>
     </html>
   );
